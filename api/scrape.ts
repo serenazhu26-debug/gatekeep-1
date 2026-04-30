@@ -1,6 +1,6 @@
-import * as cheerio from 'cheerio';
+const cheerio = require('cheerio');
 
-const resolveUrl = (baseUrl: string, target?: string | null) => {
+const resolveUrl = (baseUrl, target) => {
   if (!target) return baseUrl;
   if (target.startsWith('http')) return target;
   const urlObj = new URL(baseUrl);
@@ -9,29 +9,32 @@ const resolveUrl = (baseUrl: string, target?: string | null) => {
   return `${urlObj.protocol}//${urlObj.host}/${target}`;
 };
 
-const normalizeText = (value: unknown) => String(value || '').trim();
+const normalizeText = (value) => String(value || '').trim();
 
-const normalizeShopifyProducts = (feedUrl: string, json: any) => {
+const normalizeShopifyProducts = (feedUrl, json) => {
   const base = String(feedUrl || '').replace(/\/products\.json.*$/i, '');
-  return (json.products || []).map((p: any) => {
-    const prices = (p.variants || []).map((v: any) => Number.parseFloat(v.price)).filter((v: number) => Number.isFinite(v) && v > 0);
+  return (json.products || []).map((p) => {
+    const prices = (p.variants || []).map((v) => Number.parseFloat(v.price)).filter((v) => Number.isFinite(v) && v > 0);
     const minPrice = prices.length ? Math.min(...prices) : 0;
-    const sizeOpt = (p.options || []).find((o: any) => String(o.name || '').toLowerCase().includes('size'));
-    const sizes = sizeOpt?.values?.length ? sizeOpt.values : [...new Set((p.variants || []).map((v: any) => v.title).filter(Boolean))];
+    const sizeOpt = (p.options || []).find((o) => String(o.name || '').toLowerCase().includes('size'));
+    const sizes = sizeOpt && sizeOpt.values && sizeOpt.values.length
+      ? sizeOpt.values
+      : [...new Set((p.variants || []).map((v) => v.title).filter(Boolean))];
+
     return {
       title: p.title,
       price: minPrice ? `$${Math.round(minPrice)}` : '',
-      imageUrl: p.images?.[0]?.src || '',
+      imageUrl: (p.images && p.images[0] && p.images[0].src) || '',
       url: `${base}/products/${p.handle}`,
       tags: p.tags || [],
       productType: p.product_type || '',
       sizes: sizes.length ? sizes : ['One Size'],
-      available: Boolean((p.variants || []).some((v: any) => v.available)),
+      available: Boolean((p.variants || []).some((v) => v.available)),
     };
   });
 };
 
-const getBody = (req: any) => {
+const getBody = (req) => {
   if (typeof req.body === 'string') {
     try {
       return JSON.parse(req.body);
@@ -42,13 +45,13 @@ const getBody = (req: any) => {
   return req.body || {};
 };
 
-export default async function handler(req: any, res: any) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
   }
 
-  const { url, type } = getBody(req) as { url?: string; type?: string };
+  const { url, type } = getBody(req);
   if (!url) return res.status(400).json({ error: 'URL is required' });
 
   const normalizedType = String(type || '').toLowerCase();
@@ -72,6 +75,7 @@ export default async function handler(req: any, res: any) {
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
     });
+
     if (!response.ok) return res.status(response.status).json({ error: `Failed to fetch URL: ${response.statusText}` });
 
     const responseContentType = String(response.headers.get('content-type') || '').toLowerCase();
@@ -91,11 +95,11 @@ export default async function handler(req: any, res: any) {
     const $ = cheerio.load(html);
 
     if (normalizedType === 'search') {
-      const products: Array<{ title: string; price: string; imageUrl: string; url: string }> = [];
+      const products = [];
       const items = $('.product-item, .product-card, [class*="product"], article').slice(0, 24);
       items.each((_, el) => {
         const name = normalizeText($(el).find('h1, h2, h3, [class*="title"], [class*="name"]').first().text());
-        const price = normalizeText($(el).find('[class*="price"]').first().text()) || ($(el).text().match(/\$[\d,.]+(\.\d{2})?/)?.[0] ?? '');
+        const price = normalizeText($(el).find('[class*="price"]').first().text()) || ($(el).text().match(/\$[\d,.]+(\.\d{2})?/) || [])[0] || '';
         const img = $(el).find('img').first().attr('src') || $(el).find('img').first().attr('data-src');
         const link = $(el).find('a').first().attr('href');
         if (name && (price || img || link)) {
@@ -160,4 +164,4 @@ export default async function handler(req: any, res: any) {
   } catch (error) {
     return res.status(500).json({ error: String(error) });
   }
-}
+};

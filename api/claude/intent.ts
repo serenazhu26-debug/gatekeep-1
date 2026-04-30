@@ -1,7 +1,6 @@
+const normalizeText = (value) => String(value || '').trim();
 
-const normalizeText = (value: unknown) => String(value || '').trim();
-
-const getBody = (req: any) => {
+const getBody = (req) => {
   if (typeof req.body === 'string') {
     try {
       return JSON.parse(req.body);
@@ -12,7 +11,7 @@ const getBody = (req: any) => {
   return req.body || {};
 };
 
-export default async function handler(req: any, res: any) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
@@ -22,12 +21,7 @@ export default async function handler(req: any, res: any) {
   if (!apiKey) return res.status(503).json({ error: 'CLAUDE_API_KEY missing', mode: 'fallback' });
 
   try {
-    const { prompt = '', budget = 0, location = '', uploads = [] } = getBody(req) as {
-      prompt?: string;
-      budget?: number;
-      location?: string;
-      uploads?: unknown[];
-    };
+    const { prompt = '', budget = 0, location = '', uploads = [] } = getBody(req);
 
     const promptTrimmed = String(prompt || '').trim();
     const userPrompt = [
@@ -66,14 +60,16 @@ export default async function handler(req: any, res: any) {
     }
 
     const json = await response.json();
-    const text = (json.content || []).filter((block: any) => block.type === 'text').map((block: any) => block.text).join('\n').trim();
-    let parsed: any = null;
+    const text = (json.content || []).filter((block) => block.type === 'text').map((block) => block.text).join('\n').trim();
+
+    let parsed = null;
     try {
       const cleaned = text.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
       parsed = JSON.parse(cleaned);
     } catch {
       parsed = null;
     }
+
     if (!parsed && text.includes('{') && text.includes('}')) {
       try {
         const start = text.indexOf('{');
@@ -84,11 +80,12 @@ export default async function handler(req: any, res: any) {
       }
     }
 
-    const styleKeywords = Array.isArray(parsed?.styleKeywords)
-      ? parsed.styleKeywords.map((v: unknown) => String(v).trim()).filter(Boolean).slice(0, 8)
+    const styleKeywords = Array.isArray(parsed && parsed.styleKeywords)
+      ? parsed.styleKeywords.map((v) => String(v).trim()).filter(Boolean).slice(0, 8)
       : [];
-    const summary = normalizeText(parsed?.intentSummary || '');
-    const promptSignal = normalizeText(parsed?.promptSignal || '');
+
+    const summary = normalizeText(parsed && parsed.intentSummary);
+    const promptSignal = normalizeText(parsed && parsed.promptSignal);
     const fallbackSummary = promptTrimmed
       ? `Prompt intent for "${promptTrimmed.slice(0, 80)}" in ${location} with budget ${budget}.`
       : `Prompt intent for budget ${budget} in ${location}.`;
@@ -96,12 +93,12 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({
       intentSummary: summary || text || fallbackSummary,
       styleKeywords,
-      occasion: parsed?.occasion || '',
-      timeHint: parsed?.timeHint || '',
+      occasion: (parsed && parsed.occasion) || '',
+      timeHint: (parsed && parsed.timeHint) || '',
       promptSignal: promptSignal || promptTrimmed.slice(0, 60),
       mode: 'live',
     });
   } catch (error) {
     return res.status(500).json({ error: 'Claude intent failed', details: String(error), mode: 'fallback' });
   }
-}
+};
