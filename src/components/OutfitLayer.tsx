@@ -55,7 +55,7 @@ export default function OutfitLayer({ category, item, itemIndex, totalItems, loc
 
           {/* Info */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontWeight: 700, fontSize: 14, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: item.textLight ? 'white' : '#1A1A1A' }}>
+            <p style={{ fontWeight: 700, fontSize: 14, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: item.textLight ? 'white' : '#14532D' }}>
               {item.name}
             </p>
             <p style={{ fontSize: 12, margin: '2px 0 0', color: item.textLight ? 'rgba(255,255,255,0.6)' : '#9CA3AF' }}>
@@ -65,7 +65,7 @@ export default function OutfitLayer({ category, item, itemIndex, totalItems, loc
 
           {/* Price + counter */}
           <div style={{ textAlign: 'right', flexShrink: 0, marginRight: 36 }}>
-            <p style={{ fontWeight: 800, fontSize: 16, margin: 0, letterSpacing: '-0.02em', color: item.textLight ? 'white' : '#1A1A1A' }}>
+            <p style={{ fontWeight: 800, fontSize: 16, margin: 0, letterSpacing: '-0.02em', color: item.textLight ? 'white' : '#14532D' }}>
               {item.price === 0 ? '—' : `$${item.price}`}
             </p>
             <p style={{ fontSize: 11, margin: '2px 0 0', color: item.textLight ? 'rgba(255,255,255,0.4)' : '#D1D5DB' }}>
