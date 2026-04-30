@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import * as cheerio from 'cheerio';
 
 const resolveUrl = (baseUrl: string, target?: string | null) => {
@@ -32,7 +31,7 @@ const normalizeShopifyProducts = (feedUrl: string, json: any) => {
   });
 };
 
-const getBody = (req: VercelRequest) => {
+const getBody = (req: any) => {
   if (typeof req.body === 'string') {
     try {
       return JSON.parse(req.body);
@@ -43,7 +42,7 @@ const getBody = (req: VercelRequest) => {
   return req.body || {};
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
