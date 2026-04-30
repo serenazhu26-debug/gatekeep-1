@@ -1,5 +1,5 @@
 import { CATEGORY_ORDER } from '@/lib/data/outfitItems';
-import { CuratedOutfitItem, OutfitSearchMeta, UploadedWardrobeItem, OutfitCategory } from '@/lib/types';
+import { CuratedOutfitItem, OutfitSearchMeta, UploadedWardrobeItem, OutfitCategory, SearchStoreMarker } from '@/lib/types';
 
 interface OutfitSearchInput {
   prompt: string;
@@ -438,6 +438,15 @@ export const findOutfits = async ({
     intentSummary: intent.intentSummary,
     query: `${prompt} | ${geo.displayName} | ${budget}`,
     generatedAt: new Date().toISOString(),
+    storeMarkers: mergedStores.slice(0, 80).map((store): SearchStoreMarker => ({
+      id: store.id,
+      name: store.name,
+      address: store.address,
+      lat: store.lat,
+      lng: store.lng,
+      locationLink: store.locationLink,
+      distanceKm: store.distanceKm,
+    })),
   };
 
   return { itemsByCategory: byCategory, meta };

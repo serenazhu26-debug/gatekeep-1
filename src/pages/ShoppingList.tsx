@@ -5,12 +5,7 @@ import { ArrowLeft, MapPin, Copy, Check, ExternalLink } from 'lucide-react'
 import { useAppStore } from '@/lib/store/useAppStore'
 import Logo from '../components/Logo'
 import { outfitItems, CATEGORY_ORDER, CATEGORY_LABELS } from '@/lib/data/outfitItems'
-<<<<<<< HEAD
-import { getStore } from '@/lib/data/stores'
-import { getCurrentUser, getSavedOutfitsKey } from '@/lib/auth'
-=======
 import type { MapStore } from '../components/StoreMap'
->>>>>>> 8c7bac8c (feat: enhance StyleInput component with wardrobe upload and location suggestions; add API endpoints for scraping and intent analysis)
 
 const StoreMap = lazy(() => import('../components/StoreMap'))
 
@@ -107,54 +102,6 @@ export default function ShoppingList() {
     navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
   }
 
-<<<<<<< HEAD
-  const openGoogleMaps = () => {
-    const storesToVisit = Object.values(byStore).map(({ store }) => store)
-    if (storesToVisit.length === 0) return
-    const destination = encodeURIComponent(storesToVisit[storesToVisit.length - 1].address)
-    const waypoints = storesToVisit.slice(0, -1).map(store => store.address).join('|')
-    const waypointParam = waypoints ? `&waypoints=${encodeURIComponent(waypoints)}` : ''
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${destination}${waypointParam}&travelmode=walking`, '_blank', 'noopener,noreferrer')
-  }
-
-  const saveToOutfits = () => {
-    if (!getCurrentUser()) {
-      navigate('/auth')
-      return
-    }
-    const cleanPrompt = eventPrompt.split('\n')[0].replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim()
-    const outfitName = cleanPrompt
-      ? cleanPrompt.split(' ').slice(0, 5).join(' ')
-      : `${location} outfit`
-    const savedOutfit = {
-      id: `${Date.now()}`,
-      name: outfitName,
-      savedAt: new Date().toISOString(),
-      location,
-      total,
-      items: currentItems.map(({ cat, item }) => {
-        const store = getStore(item!.storeId)
-        return {
-          id: `${cat}-${item!.id}`,
-          category: CATEGORY_LABELS[cat],
-          name: item!.name,
-          brand: item!.brand,
-          price: item!.price,
-          emoji: item!.emoji,
-          storeName: store?.name || item!.brand,
-          storeAddress: store?.address || '',
-        }
-      }),
-    }
-    const savedKey = getSavedOutfitsKey()
-    const existing = JSON.parse(localStorage.getItem(savedKey) || '[]')
-    localStorage.setItem(savedKey, JSON.stringify([savedOutfit, ...existing]))
-    setSaved(true)
-    navigate('/saved-outfits')
-  }
-
-=======
->>>>>>> 8c7bac8c (feat: enhance StyleInput component with wardrobe upload and location suggestions; add API endpoints for scraping and intent analysis)
   return (
     <main style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '0 24px 40px', background: '#F5F5DC', fontFamily: "'Lora', serif" }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '28px 0 0', maxWidth: 1200, margin: '0 auto', width: '100%', borderBottom: '1px solid black', paddingBottom: 16 }}>

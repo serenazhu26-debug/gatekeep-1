@@ -57,10 +57,21 @@ export interface CuratedOutfitItem extends OutfitItem {
   imageUrl?: string;
 }
 
+export interface SearchStoreMarker {
+  id: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  locationLink?: string;
+  distanceKm?: number;
+}
+
 export interface OutfitSearchMeta {
   analysedBy: string;
   provider: string;
   intentSummary: string;
   query: string;
   generatedAt: string;
+  storeMarkers?: SearchStoreMarker[];
 }

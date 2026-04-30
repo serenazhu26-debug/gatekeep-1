@@ -180,6 +180,22 @@ export default function StyleInput() {
                 )}
               </div>
 
+              {!prompt && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} style={{ marginTop: 14 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                    {SUGGESTIONS.map(s => (
+                      <button
+                        key={s}
+                        onClick={() => setPrompt(s)}
+                        style={{ padding: '10px 20px', border: '1px solid black', fontSize: 13, color: 'black', background: 'transparent', cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}
+                      >
+                        [{s}]
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 20 }}>
                 <div style={{ position: 'relative' }}>
                   <div style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', color: 'black' }}>
@@ -250,22 +266,6 @@ export default function StyleInput() {
                   </p>
                 )}
               </div>
-
-              {!prompt && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} style={{ marginTop: 24 }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                    {SUGGESTIONS.map(s => (
-                      <button
-                        key={s}
-                        onClick={() => setPrompt(s)}
-                        style={{ padding: '10px 20px', border: '1px solid black', fontSize: 13, color: 'black', background: 'transparent', cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}
-                      >
-                        [{s}]
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
 
               <div style={{ marginTop: 40 }}>
                 <button
