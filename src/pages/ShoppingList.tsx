@@ -47,7 +47,7 @@ export default function ShoppingList() {
           <button onClick={() => navigate(-1)} style={{ width: 44, height: 44, border: '1px solid black', display: 'center', alignItems: 'center', justifyContent: 'center', background: 'white', cursor: 'pointer', color: 'black' }}>
             <ArrowLeft size={18} />
           </button>
-          <span style={{ fontWeight: 800, fontSize: 32, letterSpacing: '-0.02em', color: 'black', fontFamily: "'Playfair Display', serif" }}>Gatekeep</span>
+          <Logo />
         </div>
         <button onClick={copyList}
           style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', border: '1px solid black', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: copied ? 'black' : 'white', color: copied ? 'white' : 'black', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>

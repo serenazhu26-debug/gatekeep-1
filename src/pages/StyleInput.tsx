@@ -3,12 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Sparkles, X, MapPin, DollarSign } from 'lucide-react'
 import { useAppStore } from '@/lib/store/useAppStore'
-
-const Logo = () => (
-  <div style={{ fontSize: 24, fontWeight: 700, fontFamily: "'Playfair Display', serif", letterSpacing: '0.05em' }}>
-    VIBECHECK
-  </div>
-)
+import Logo from '../components/Logo'
 
 const SUGGESTIONS = [
   'Job interview at a tech startup',
@@ -23,10 +18,10 @@ type Phase = 'input' | 'finding'
 
 export default function StyleInput() {
   const navigate = useNavigate()
-  const { setEventPrompt, setBudget, setLocation, budget: storeBudget, location: storeLocation } = useAppStore()
+  const { setEventPrompt, setBudget, setLocation } = useAppStore()
   const [prompt, setPrompt] = useState('')
-  const [localBudget, setLocalBudget] = useState(storeBudget.toString())
-  const [localLocation, setLocalLocation] = useState(storeLocation)
+  const [localBudget, setLocalBudget] = useState('')
+  const [localLocation, setLocalLocation] = useState('')
   const [phase, setPhase] = useState<Phase>('input')
   const [findingStep, setFindingStep] = useState(0)
 
@@ -34,7 +29,7 @@ export default function StyleInput() {
 
   const steps = [
     'Analyzing your event…',
-    `Scanning inventory in ${localLocation}…`,
+    `Scanning inventory in ${localLocation || 'LOCATION'}…`,
     'Matching styles to occasion…',
     'Curating your final look…',
   ]
@@ -60,6 +55,15 @@ export default function StyleInput() {
 
   return (
     <main style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '0 24px 40px', background: '#F5F5DC', fontFamily: "'Lora', serif" }}>
+      <style>
+        {`
+          .style-input-field::placeholder {
+            color: #B8B8B8;
+            opacity: 1;
+          }
+        `}
+      </style>
+
       {/* Nav */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '28px 0 0', maxWidth: 1200, margin: '0 auto', width: '100%', borderBottom: '1px solid black', paddingBottom: 16 }}>
         <button onClick={() => navigate(-1)}
@@ -106,10 +110,12 @@ export default function StyleInput() {
                     <DollarSign size={20} />
                   </div>
                   <input
-                    type="number"
+                    className="style-input-field"
+                    type="text"
+                    inputMode="numeric"
                     value={localBudget}
-                    onChange={e => setLocalBudget(e.target.value)}
-                    placeholder="BUDGET"
+                    onChange={e => setLocalBudget(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Budget"
                     style={{ width: '100%', padding: '18px 20px 18px 52px', borderRadius: 0, fontSize: 16, color: 'black', background: 'white', border: '1px solid black', outline: 'none', fontFamily: "'JetBrains Mono', monospace" }}
                   />
                 </div>
@@ -118,10 +124,11 @@ export default function StyleInput() {
                     <MapPin size={20} />
                   </div>
                   <input
+                    className="style-input-field"
                     type="text"
                     value={localLocation}
                     onChange={e => setLocalLocation(e.target.value)}
-                    placeholder="LOCATION"
+                    placeholder="Location"
                     style={{ width: '100%', padding: '18px 20px 18px 52px', borderRadius: 0, fontSize: 16, color: 'black', background: 'white', border: '1px solid black', outline: 'none', fontFamily: "'JetBrains Mono', monospace" }}
                   />
                 </div>
@@ -187,4 +194,4 @@ export default function StyleInput() {
       </div>
     </main>
   )
-} 
+}

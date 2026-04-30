@@ -1,23 +1,60 @@
-import { useState } from 'react'
+import { useState, type CSSProperties, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Heart, ChevronDown, ChevronUp, ArrowRight, MapPin } from 'lucide-react'
 import { useAppStore } from '@/lib/store/useAppStore'
 import { outfitItems, CATEGORY_LABELS, CATEGORY_ORDER } from '@/lib/data/outfitItems'
-import OutfitLayer from '../components/OutfitLayer'
+import { getStore } from '@/lib/data/stores'
 import Logo from '../components/Logo'
 
 export default function OutfitBuilder() {
   const navigate = useNavigate()
-  const { eventPrompt, budget, setBudget, layers, swipeLayer, toggleLock, getTotalCost, location } = useAppStore()
+  const { eventPrompt, setEventPrompt, budget, setBudget, layers, getTotalCost, location } = useAppStore()
   const [showSlider, setShowSlider] = useState(false)
+  const [refinePrompt, setRefinePrompt] = useState('')
+  const [minCost, setMinCost] = useState(50)
+  const [maxCost, setMaxCost] = useState(500)
+  const [minCostInput, setMinCostInput] = useState('50')
+  const [maxCostInput, setMaxCostInput] = useState('500')
   const total = getTotalCost()
   const over  = total > budget
   const pct   = Math.min((total / budget) * 100, 100)
+  const rangePct = ((budget - minCost) / (maxCost - minCost)) * 100
 
   const shortPrompt = eventPrompt
     ? (eventPrompt.length > 42 ? eventPrompt.slice(0, 42) + '…' : eventPrompt)
     : 'Your outfit'
+  const currentItems = CATEGORY_ORDER
+    .map(cat => {
+      const item = outfitItems[cat]?.[layers[cat]?.currentIndex ?? 0]
+      return item ? { cat, item, store: getStore(item.storeId) } : null
+    })
+    .filter((row): row is NonNullable<typeof row> => Boolean(row))
+    .filter(({ item }) => item.price > 0)
+
+  const handleRefineSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const refined = refinePrompt.trim()
+    if (!refined) return
+    setEventPrompt(refined)
+    setRefinePrompt('')
+  }
+
+  const commitMinCost = () => {
+    const nextMin = Number(minCostInput) || 0
+    const safeMin = Math.min(nextMin, maxCost - 10)
+    setMinCost(safeMin)
+    setMinCostInput(String(safeMin))
+    if (budget < safeMin) setBudget(safeMin)
+  }
+
+  const commitMaxCost = () => {
+    const nextMax = Number(maxCostInput) || minCost + 10
+    const safeMax = Math.max(nextMax, minCost + 10)
+    setMaxCost(safeMax)
+    setMaxCostInput(String(safeMax))
+    if (budget > safeMax) setBudget(safeMax)
+  }
 
   return (
     <main style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '0 24px 40px', background: '#F5F5DC', fontFamily: "'Lora', serif" }}>
@@ -39,32 +76,66 @@ export default function OutfitBuilder() {
         {/* Section heading */}
         <div style={{ marginBottom: 32, borderLeft: '4px solid black', paddingLeft: 24 }}>
           <h2 style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.02em', color: 'black', fontFamily: "'Playfair Display', serif" }}>CURATED LOOKS</h2>
-          <p style={{ fontSize: 16, color: 'black', marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>SWIPE TO SWAP. STOCK IN {location.toUpperCase()}.</p>
+          <p style={{ fontSize: 16, color: 'black', marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>AI PICKED FOR YOUR EVENT. STOCK IN {location.toUpperCase()}.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 48, alignItems: 'start' }}>
+        <form onSubmit={handleRefineSubmit} style={{ width: '100%', display: 'flex', alignItems: 'stretch', marginBottom: 32 }}>
+          <input
+            type="text"
+            value={refinePrompt}
+            onChange={e => setRefinePrompt(e.target.value)}
+            placeholder="Refine your search..."
+            style={{ flex: 1, minWidth: 0, padding: '18px 22px', borderRadius: 0, fontSize: 16, color: 'black', background: 'white', border: '1px solid black', borderRight: 'none', outline: 'none', fontFamily: "'JetBrains Mono', monospace" }}
+          />
+          <button
+            type="submit"
+            disabled={!refinePrompt.trim()}
+            style={{ width: 64, borderRadius: 0, border: '1px solid black', background: refinePrompt.trim() ? 'black' : '#CCCCCC', color: 'white', cursor: refinePrompt.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <ArrowRight size={20} />
+          </button>
+        </form>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 0.9fr', gap: 48, alignItems: 'start' }}>
           
-          {/* Left: Outfit layers */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {CATEGORY_ORDER.map(cat => {
-              const items = outfitItems[cat] || []
-              const layer = layers[cat]
-              const item  = items[layer?.currentIndex ?? 0]
-              if (!item) return null
-              return (
-                <div key={cat} style={{ border: '1px solid black', background: 'white', padding: '4px' }}>
-                  <p style={{ fontSize: 11, color: 'black', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 700, margin: '4px 0 8px 8px', fontFamily: "'JetBrains Mono', monospace" }}>
-                    {CATEGORY_LABELS[cat]}
-                  </p>
-                  <OutfitLayer category={cat} label={CATEGORY_LABELS[cat]} item={item}
-                    itemIndex={layer?.currentIndex ?? 0} totalItems={items.length}
-                    locked={layer?.locked ?? false}
-                    onSwipe={dir => swipeLayer(cat, dir)}
-                    onToggleLock={() => toggleLock(cat)} />
-                </div>
-              )
-            })}
-          </div>
+          {/* Left: AI curated outfit */}
+          <section style={{ border: '1px solid black', background: 'white', padding: 28, boxShadow: '8px 8px 0px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'start', marginBottom: 28 }}>
+              <div>
+                <p style={{ margin: 0, fontSize: 12, color: 'black', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: "'JetBrains Mono', monospace" }}>AI_CURATED_OUTFIT</p>
+                <h3 style={{ margin: '8px 0 0', fontSize: 28, lineHeight: 1.1, color: 'black', fontFamily: "'Playfair Display', serif" }}>{shortPrompt}</h3>
+              </div>
+              <span style={{ border: '1px solid black', padding: '6px 10px', fontSize: 11, fontWeight: 700, color: 'black', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                {currentItems.length} PIECES
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(4, 92px)', gap: 12 }}>
+              {currentItems.map(({ cat, item }) => {
+                const slotStyle: CSSProperties = cat === 'headgear'
+                  ? { gridColumn: '1 / 3', gridRow: '1' }
+                  : cat === 'top'
+                    ? { gridColumn: '1 / 3', gridRow: '2' }
+                    : cat === 'belt'
+                      ? { gridColumn: '1 / 3', gridRow: '3' }
+                      : cat === 'bottom'
+                        ? { gridColumn: '1', gridRow: '4' }
+                        : { gridColumn: '2', gridRow: '4' }
+
+                return (
+                  <div key={item.id} style={{ ...slotStyle, display: 'flex', alignItems: 'center', gap: 14, border: '1px solid black', background: '#F5F5DC', padding: '12px 14px', overflow: 'hidden' }}>
+                    <div style={{ width: 56, height: 56, border: '1px solid black', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, flexShrink: 0 }}>
+                      {item.emoji}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: 'black', textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace" }}>{CATEGORY_LABELS[cat]}</p>
+                      <p style={{ margin: '4px 0 0', fontSize: 16, fontWeight: 700, color: 'black', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Playfair Display', serif" }}>{item.name}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
 
           {/* Right: Summary & Budget */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -93,22 +164,48 @@ export default function OutfitBuilder() {
                 {showSlider && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ marginTop: 32, overflow: 'hidden' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'black', marginBottom: 12, fontWeight: 500, fontFamily: "'JetBrains Mono', monospace" }}>
-                      <span>MIN_50</span>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>MIN_</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={minCostInput}
+                          onChange={e => setMinCostInput(e.target.value.replace(/\D/g, ''))}
+                          onBlur={commitMinCost}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') e.currentTarget.blur()
+                          }}
+                          style={{ width: 54, border: '1px solid black', padding: '6px 4px', color: 'black', background: 'white', fontSize: 12, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textAlign: 'center', outline: 'none' }}
+                        />
+                      </label>
                       <span style={{ fontWeight: 700 }}>CURR_{budget}</span>
-                      <span>MAX_500</span>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>MAX_</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={maxCostInput}
+                          onChange={e => setMaxCostInput(e.target.value.replace(/\D/g, ''))}
+                          onBlur={commitMaxCost}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') e.currentTarget.blur()
+                          }}
+                          style={{ width: 54, border: '1px solid black', padding: '6px 4px', color: 'black', background: 'white', fontSize: 12, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", textAlign: 'center', outline: 'none' }}
+                        />
+                      </label>
                     </div>
-                    <input type="range" min={50} max={500} step={10} value={budget}
+                    <input type="range" min={minCost} max={maxCost} step={10} value={budget}
                       onChange={e => setBudget(Number(e.target.value))}
-                      style={{ '--pct': `${((budget - 50) / 450) * 100}%` } as React.CSSProperties} />
+                      style={{ '--pct': `${rangePct}%` } as CSSProperties} />
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <button onClick={() => navigate('/shopping-list')} disabled={over}
-              style={{ width: '100%', padding: '22px', borderRadius: 0, fontWeight: 700, fontSize: 18, color: 'white', background: over ? '#999999' : 'black', border: '1px solid black', cursor: over ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, transition: 'all 0.3s', fontFamily: "'JetBrains Mono', monospace", boxShadow: over ? 'none' : '8px 8px 0px rgba(0,0,0,0.1)' }}>
-              <Heart size={20} fill={over ? 'none' : 'white'} />
-              {over ? 'OVER BUDGET' : 'GET THE LIST'}
+            <button onClick={() => navigate('/shopping-list')}
+              style={{ width: '100%', padding: '22px', borderRadius: 0, fontWeight: 700, fontSize: 18, color: 'white', background: 'black', border: '1px solid black', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, transition: 'all 0.3s', fontFamily: "'JetBrains Mono', monospace", boxShadow: '8px 8px 0px rgba(0,0,0,0.1)' }}>
+              <Heart size={20} fill="white" />
+              GET THE LIST
             </button>
 
             <p style={{ textAlign: 'center', fontSize: 13, color: 'black', fontWeight: 500, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>
@@ -117,6 +214,37 @@ export default function OutfitBuilder() {
 
           </div>
         </div>
+
+        <section style={{ marginTop: 40 }}>
+          <div style={{ marginBottom: 16, borderLeft: '4px solid black', paddingLeft: 18 }}>
+            <h3 style={{ margin: 0, fontSize: 28, color: 'black', fontFamily: "'Playfair Display', serif" }}>ITEM SOURCES</h3>
+            <p style={{ margin: '4px 0 0', fontSize: 13, color: 'black', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>
+              CLOTHING DETAILS // STORES NEAR {location.toUpperCase()}
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
+            {currentItems.map(({ cat, item, store }) => (
+              <article key={item.id} style={{ display: 'flex', gap: 14, alignItems: 'center', border: '1px solid black', background: 'white', padding: 16 }}>
+                <div style={{ width: 52, height: 52, border: '1px solid black', background: '#F5F5DC', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>
+                  {item.emoji}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: 'black', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>{CATEGORY_LABELS[cat]}</p>
+                  <p style={{ margin: '4px 0 0', fontSize: 16, fontWeight: 700, color: 'black', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Playfair Display', serif" }}>{item.name}</p>
+                  <p style={{ margin: '5px 0 0', fontSize: 12, color: 'black', fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>{item.brand} // SKU:{item.sku}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, minWidth: 0 }}>
+                    <MapPin size={13} color="black" style={{ flexShrink: 0 }} />
+                    <span style={{ fontSize: 11, color: 'black', fontFamily: "'JetBrains Mono', monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {store ? `${store.name} / ${store.address}` : 'SOURCE PENDING'}
+                    </span>
+                  </div>
+                </div>
+                <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'black', fontFamily: "'JetBrains Mono', monospace" }}>${item.price}</p>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   )
