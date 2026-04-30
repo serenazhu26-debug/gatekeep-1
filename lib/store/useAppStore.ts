@@ -16,6 +16,7 @@ interface AppStore {
   setBudget: (b: number) => void;
   setBudgetFriendlyOutfit: (b: number) => void;
   setLocation: (l: string) => void;
+  setOutfitBySavedItemIds: (itemIds: string[]) => void;
   swipeLayer: (category: string, direction: 'left' | 'right') => void;
   toggleLock: (category: string) => void;
   getTotalCost: () => number;
@@ -60,6 +61,16 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setBudget: (b) => set({ budget: b }),
   setBudgetFriendlyOutfit: (b) => set({ budget: b, layers: getBudgetFriendlyLayers(b) }),
   setLocation: (l) => set({ location: l }),
+  setOutfitBySavedItemIds: (itemIds) => {
+    const layers = { ...get().layers };
+    for (const cat of CATEGORY_ORDER) {
+      const index = (outfitItems[cat] || []).findIndex(item =>
+        itemIds.includes(item.id) || itemIds.includes(`${cat}-${item.id}`)
+      );
+      if (index >= 0) layers[cat] = { ...layers[cat], currentIndex: index };
+    }
+    set({ layers });
+  },
 
   swipeLayer: (category, direction) => {
     const { layers } = get();

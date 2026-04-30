@@ -1,7 +1,7 @@
 import { useState, type CSSProperties, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ArrowRight, MapPin } from 'lucide-react'
+import { ArrowLeft, Heart, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ArrowRight, MapPin, Bookmark } from 'lucide-react'
 import { useAppStore } from '@/lib/store/useAppStore'
 import { outfitItems, CATEGORY_LABELS, CATEGORY_ORDER } from '@/lib/data/outfitItems'
 import { getStore } from '@/lib/data/stores'
@@ -9,7 +9,7 @@ import Logo from '../components/Logo'
 
 export default function OutfitBuilder() {
   const navigate = useNavigate()
-  const { eventPrompt, setEventPrompt, budget, setBudget, layers, swipeLayer, getTotalCost, location } = useAppStore()
+  const { setEventPrompt, budget, setBudget, layers, swipeLayer, getTotalCost, location } = useAppStore()
   const [showSlider, setShowSlider] = useState(false)
   const [refinePrompt, setRefinePrompt] = useState('')
   const [minCost, setMinCost] = useState(50)
@@ -21,9 +21,6 @@ export default function OutfitBuilder() {
   const pct   = Math.min((total / budget) * 100, 100)
   const rangePct = ((budget - minCost) / (maxCost - minCost)) * 100
 
-  const shortPrompt = eventPrompt
-    ? (eventPrompt.length > 42 ? eventPrompt.slice(0, 42) + '…' : eventPrompt)
-    : 'Your outfit'
   const currentItems = CATEGORY_ORDER
     .map(cat => {
       const item = outfitItems[cat]?.[layers[cat]?.currentIndex ?? 0]
@@ -67,9 +64,10 @@ export default function OutfitBuilder() {
           </button>
           <Logo />
         </div>
-        <div style={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: 'black', fontWeight: 500, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>
-          // {shortPrompt}
-        </div>
+        <button onClick={() => navigate('/saved-outfits')}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', border: '1px solid black', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: 'white', color: 'black', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>
+          <Bookmark size={14} /> SAVED OUTFITS
+        </button>
       </div>
 
       <div style={{ maxWidth: 1000, margin: '0 auto', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', marginTop: 32 }}>

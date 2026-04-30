@@ -24,6 +24,7 @@ export interface Store {
   address: string;
   type: 'chain' | 'thrift' | 'boutique';
   dotColor: string;
+  website?: string;
 }
 
 export interface UserProfile {

@@ -3,6 +3,7 @@ import Welcome from './pages/Welcome'
 import StyleInput from './pages/StyleInput'
 import OutfitBuilder from './pages/OutfitBuilder'
 import ShoppingList from './pages/ShoppingList'
+import SavedOutfits from './pages/SavedOutfits'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <Route path="/style-input"    element={<StyleInput />} />
           <Route path="/outfit-builder" element={<OutfitBuilder />} />
           <Route path="/shopping-list"  element={<ShoppingList />} />
+          <Route path="/saved-outfits"  element={<SavedOutfits />} />
         </Routes>
       </div>
     </BrowserRouter>

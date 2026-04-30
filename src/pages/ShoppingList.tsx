@@ -1,7 +1,7 @@
 import { useState, Suspense, lazy } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, MapPin, Copy, Check } from 'lucide-react'
+import { ArrowLeft, MapPin, Copy, Check, Bookmark } from 'lucide-react'
 import { useAppStore } from '@/lib/store/useAppStore'
 import Logo from '../components/Logo'
 import { outfitItems, CATEGORY_ORDER, CATEGORY_LABELS } from '@/lib/data/outfitItems'
@@ -11,8 +11,9 @@ const StoreMap = lazy(() => import('../components/StoreMap'))
 
 export default function ShoppingList() {
   const navigate = useNavigate()
-  const { layers, getTotalCost, location } = useAppStore()
+  const { eventPrompt, layers, getTotalCost, location } = useAppStore()
   const [copied, setCopied] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [tab, setTab]       = useState<'list' | 'map'>('list')
   const total = getTotalCost()
 
@@ -30,6 +31,12 @@ export default function ShoppingList() {
     acc[store.id].items.push(row)
     return acc
   }, {} as Record<string, StoreGroup>)
+  const mapStoreItems = Object.fromEntries(
+    Object.values(byStore).map(({ store, items }) => [
+      store.id,
+      items.map(({ item }) => item!.name.toUpperCase()),
+    ])
+  )
 
   const copyList = () => {
     const text = Object.values(byStore).map(({ store, items }) =>
@@ -37,6 +44,46 @@ export default function ShoppingList() {
       items.map(({ item }) => `  · ${item!.name} (${item!.brand}) — $${item!.price} — SKU: ${item!.sku}`).join('\n')
     ).join('\n\n')
     navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+  }
+
+  const openGoogleMaps = () => {
+    const storesToVisit = Object.values(byStore).map(({ store }) => store)
+    if (storesToVisit.length === 0) return
+    const destination = encodeURIComponent(storesToVisit[storesToVisit.length - 1].address)
+    const waypoints = storesToVisit.slice(0, -1).map(store => store.address).join('|')
+    const waypointParam = waypoints ? `&waypoints=${encodeURIComponent(waypoints)}` : ''
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${destination}${waypointParam}&travelmode=walking`, '_blank', 'noopener,noreferrer')
+  }
+
+  const saveToOutfits = () => {
+    const cleanPrompt = eventPrompt.split('\n')[0].replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim()
+    const outfitName = cleanPrompt
+      ? cleanPrompt.split(' ').slice(0, 5).join(' ')
+      : `${location} outfit`
+    const savedOutfit = {
+      id: `${Date.now()}`,
+      name: outfitName,
+      savedAt: new Date().toISOString(),
+      location,
+      total,
+      items: currentItems.map(({ cat, item }) => {
+        const store = getStore(item!.storeId)
+        return {
+          id: `${cat}-${item!.id}`,
+          category: CATEGORY_LABELS[cat],
+          name: item!.name,
+          brand: item!.brand,
+          price: item!.price,
+          emoji: item!.emoji,
+          storeName: store?.name || item!.brand,
+          storeAddress: store?.address || '',
+        }
+      }),
+    }
+    const existing = JSON.parse(localStorage.getItem('gatekeep.savedOutfits') || '[]')
+    localStorage.setItem('gatekeep.savedOutfits', JSON.stringify([savedOutfit, ...existing]))
+    setSaved(true)
+    navigate('/saved-outfits')
   }
 
   return (
@@ -49,10 +96,16 @@ export default function ShoppingList() {
           </button>
           <Logo />
         </div>
-        <button onClick={copyList}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', border: '1px solid black', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: copied ? 'black' : 'white', color: copied ? 'white' : 'black', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>
-          {copied ? <><Check size={14} /> COPIED_SUCCESS</> : <><Copy size={14} /> COPY_LIST</>}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button onClick={() => navigate('/saved-outfits')}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', border: '1px solid black', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: 'white', color: 'black', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>
+            <Bookmark size={14} /> SAVED OUTFITS
+          </button>
+          <button onClick={copyList}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', border: '1px solid black', fontSize: 13, fontWeight: 700, cursor: 'pointer', background: copied ? 'black' : 'white', color: copied ? 'white' : 'black', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>
+            {copied ? <><Check size={14} /> COPIED_SUCCESS</> : <><Copy size={14} /> COPY_LIST</>}
+          </button>
+        </div>
       </div>
 
       <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', marginTop: 32 }}>
@@ -84,7 +137,18 @@ export default function ShoppingList() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                   <div style={{ width: 14, height: 14, background: 'black', flexShrink: 0, border: '1px solid white' }} />
                   <p style={{ fontWeight: 700, fontSize: 22, color: 'black', margin: 0, fontFamily: "'Playfair Display', serif" }}>{store.name.toUpperCase()}</p>
-                  <span style={{ padding: '2px 8px', border: '1px solid black', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'black', background: 'transparent', fontFamily: "'JetBrains Mono', monospace" }}>[{store.type}]</span>
+                  {store.website ? (
+                    <a
+                      href={store.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ padding: '2px 8px', border: '1px solid black', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'black', background: 'transparent', fontFamily: "'JetBrains Mono', monospace", textDecoration: 'none', cursor: 'pointer' }}
+                    >
+                      [{store.type}]
+                    </a>
+                  ) : (
+                    <span style={{ padding: '2px 8px', border: '1px solid black', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: 'black', background: 'transparent', fontFamily: "'JetBrains Mono', monospace" }}>[{store.type}]</span>
+                  )}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, marginLeft: 26 }}>
                   <MapPin size={14} color="black" />
@@ -116,17 +180,29 @@ export default function ShoppingList() {
             ))}
 
             <div style={{ flex: 1 }} />
-            
-            <button onClick={() => navigate('/outfit-builder')}
-              style={{ width: '100%', padding: '18px', border: '1px solid black', fontWeight: 600, fontSize: 14, color: 'black', background: 'white', cursor: 'pointer', transition: 'all 0.2s', fontFamily: "'JetBrains Mono', monospace" }}>
-              [ SWAP_ITEMS ]
-            </button>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button onClick={() => navigate('/outfit-builder')}
+                style={{ width: '100%', padding: '18px', border: '1px solid black', fontWeight: 600, fontSize: 14, color: 'black', background: 'white', cursor: 'pointer', transition: 'all 0.2s', fontFamily: "'JetBrains Mono', monospace" }}>
+                [ SWAP_ITEMS ]
+              </button>
+              <button onClick={saveToOutfits}
+                style={{ width: '100%', padding: '18px', border: '1px solid black', fontWeight: 700, fontSize: 14, color: saved ? 'white' : 'black', background: saved ? 'black' : 'white', cursor: 'pointer', transition: 'all 0.2s', fontFamily: "'JetBrains Mono', monospace" }}>
+                {saved ? '[ SAVED ]' : '[ SAVE TO OUTFITS ]'}
+              </button>
+            </div>
           </div>
 
           {tab === 'map' && (
             <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} style={{ position: 'sticky', top: 32, height: 'calc(100vh - 160px)', border: '1px solid black' }}>
+              <button
+                onClick={openGoogleMaps}
+                style={{ position: 'absolute', top: 16, right: 16, zIndex: 1000, padding: '12px 16px', border: '1px solid black', background: 'white', color: 'black', fontSize: 12, fontWeight: 800, cursor: 'pointer', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', boxShadow: '4px 4px 0px rgba(0,0,0,0.12)' }}
+              >
+                OPEN IN GOOGLE MAPS
+              </button>
               <Suspense fallback={<div style={{ height: '100%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'black', fontFamily: "'JetBrains Mono', monospace" }}>LOADING_MAP...</div>}>
-                <StoreMap activeStoreIds={activeStoreIds} />
+                <StoreMap activeStoreIds={activeStoreIds} storeItems={mapStoreItems} />
               </Suspense>
             </motion.div>
           )}
