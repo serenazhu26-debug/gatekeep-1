@@ -18,15 +18,22 @@ interface Props {
 }
 
 export default function StoreMap({ activeStoreIds }: Props) {
+  const { location } = useAppStore()
   const display = activeStoreIds.length > 0
     ? stores.filter(s => activeStoreIds.includes(s.id))
     : stores
 
-  const center: [number, number] = [40.7380, -73.9900]
+  const getCenter = (): [number, number] => {
+    const loc = location.toLowerCase()
+    if (loc.includes('sydney')) return [-33.8688, 151.2093]
+    return [40.7380, -73.9900]
+  }
+
+  const center = getCenter()
 
   return (
     <div style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid #DCFCE7', height: '100%', boxShadow: '0 8px 24px rgba(22,101,52,0.04)' }}>
-      <MapContainer center={center} zoom={12}
+      <MapContainer key={location} center={center} zoom={13}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false} attributionControl={false}>
         <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution="" />

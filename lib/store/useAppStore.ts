@@ -9,10 +9,12 @@ interface LayerState {
 interface AppStore {
   eventPrompt: string;
   budget: number;
+  location: string;
   layers: Record<string, LayerState>;
 
   setEventPrompt: (p: string) => void;
   setBudget: (b: number) => void;
+  setLocation: (l: string) => void;
   swipeLayer: (category: string, direction: 'left' | 'right') => void;
   toggleLock: (category: string) => void;
   getTotalCost: () => number;
@@ -29,10 +31,12 @@ const initialLayers = () => {
 export const useAppStore = create<AppStore>((set, get) => ({
   eventPrompt: '',
   budget: 200,
+  location: 'New York',
   layers: initialLayers(),
 
   setEventPrompt: (p) => set({ eventPrompt: p }),
   setBudget: (b) => set({ budget: b }),
+  setLocation: (l) => set({ location: l }),
 
   swipeLayer: (category, direction) => {
     const { layers } = get();

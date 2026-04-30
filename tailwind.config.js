@@ -8,29 +8,14 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        serif: ['"Playfair Display"', 'Lora', '"Times New Roman"', 'serif'],
+        serif: ['"Playfair Display"', 'serif'],
         sans: ['Lora', 'serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {
-        beige: {
-          50: '#FFFDF0',
-          100: '#FDFBEB',
-          200: '#F5F5DC',
-          300: '#E8E8C0',
-          400: '#D9D9A3',
-        },
-        pastel: {
-          50: '#F0FDF4',
-          100: '#DCFCE7',
-          200: '#BBF7D0',
-          300: '#86EFAC',
-          400: '#4ADE80',
-          500: '#22C55E',
-          600: '#16A34A',
-          700: '#15803D',
-          800: '#166534',
-          900: '#14532D',
-        },
+        beige: '#F5F5DC',
+        black: '#000000',
+        white: '#FFFFFF',
       },
       keyframes: {
         float: {
