@@ -8,6 +8,7 @@
     "preview": "webpack serve --mode production"
   },
   "dependencies": {
+    "cheerio": "^1.2.0",
     "framer-motion": "^10.18.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.378.0",

@@ -39,4 +39,7 @@ coverage/
 .tmp/
 .temp/
 .vercel
+<<<<<<< HEAD
 .env*.local
+=======
+>>>>>>> db01423a (refactor: remove yaml package and related utilities)

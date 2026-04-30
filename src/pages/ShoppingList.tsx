@@ -67,7 +67,7 @@ export default function ShoppingList() {
     return acc
   }, {} as Record<string, StoreGroup>)
 
-  const mapStores: MapStore[] = Object.values(byStore)
+  const mapStoresFromItems: MapStore[] = Object.values(byStore)
     .filter(({ store }) => store.lat != null && store.lng != null && store.type !== 'owned')
     .map(({ store }) => ({
       id: store.id,
@@ -77,6 +77,26 @@ export default function ShoppingList() {
       lng: store.lng!,
       dotColor: store.dotColor,
     }))
+
+  const mapStoresFromSearchMeta: MapStore[] = (searchMeta?.storeMarkers || []).map((store, index) => ({
+    id: store.id || `search-store-${index}`,
+    name: store.name || 'Store',
+    address: store.address || location,
+    lat: store.lat,
+    lng: store.lng,
+    dotColor: '#1a1a1a',
+  }))
+    .filter(store => Number.isFinite(store.lat) && Number.isFinite(store.lng))
+
+  const mergedMapStores = [...mapStoresFromItems, ...mapStoresFromSearchMeta]
+  const mapStores: MapStore[] = []
+  const seenMapKeys = new Set<string>()
+  for (const store of mergedMapStores) {
+    const key = `${store.name.toLowerCase()}|${store.lat.toFixed(3)}|${store.lng.toFixed(3)}`
+    if (seenMapKeys.has(key)) continue
+    seenMapKeys.add(key)
+    mapStores.push(store)
+  }
 
   const storeCount = Object.values(byStore).filter(({ store }) => store.type !== 'owned').length
 
