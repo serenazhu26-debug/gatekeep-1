@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, ChevronDown, Sparkles } from 'lucide-react'
 import Logo from '../components/Logo'
+import { getCurrentUser } from '@/lib/auth'
 
 const steps = [
   {
@@ -123,6 +124,7 @@ function VerticalOutfitAnimator() {
 
 export default function Welcome() {
   const navigate = useNavigate()
+  const currentUser = getCurrentUser()
   const { scrollYProgress } = useScroll()
   
   const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0])
@@ -136,7 +138,10 @@ export default function Welcome() {
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '24px', background: 'rgba(245, 245, 220, 0.8)', backdropFilter: 'blur(8px)', borderBottom: '1px solid black' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Logo />
-          <span style={{ fontSize: 11, color: 'black', fontWeight: 600, letterSpacing: '0.2em', fontFamily: "'JetBrains Mono', monospace" }}>001_READY</span>
+          <button onClick={() => navigate(currentUser ? '/account' : '/auth')}
+            style={{ padding: '10px 18px', border: '1px solid black', background: 'white', color: 'black', cursor: 'pointer', fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase' }}>
+            {currentUser ? 'ACCOUNT' : 'SIGN IN'}
+          </button>
         </div>
       </nav>
 

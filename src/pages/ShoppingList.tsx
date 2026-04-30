@@ -6,6 +6,7 @@ import { useAppStore } from '@/lib/store/useAppStore'
 import Logo from '../components/Logo'
 import { outfitItems, CATEGORY_ORDER, CATEGORY_LABELS } from '@/lib/data/outfitItems'
 import { getStore } from '@/lib/data/stores'
+import { getCurrentUser, getSavedOutfitsKey } from '@/lib/auth'
 
 const StoreMap = lazy(() => import('../components/StoreMap'))
 
@@ -56,6 +57,10 @@ export default function ShoppingList() {
   }
 
   const saveToOutfits = () => {
+    if (!getCurrentUser()) {
+      navigate('/auth')
+      return
+    }
     const cleanPrompt = eventPrompt.split('\n')[0].replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim()
     const outfitName = cleanPrompt
       ? cleanPrompt.split(' ').slice(0, 5).join(' ')
@@ -80,8 +85,9 @@ export default function ShoppingList() {
         }
       }),
     }
-    const existing = JSON.parse(localStorage.getItem('gatekeep.savedOutfits') || '[]')
-    localStorage.setItem('gatekeep.savedOutfits', JSON.stringify([savedOutfit, ...existing]))
+    const savedKey = getSavedOutfitsKey()
+    const existing = JSON.parse(localStorage.getItem(savedKey) || '[]')
+    localStorage.setItem(savedKey, JSON.stringify([savedOutfit, ...existing]))
     setSaved(true)
     navigate('/saved-outfits')
   }

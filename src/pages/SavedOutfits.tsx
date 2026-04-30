@@ -1,7 +1,8 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ChevronDown, ChevronUp, Download, Pencil, Trash2 } from 'lucide-react'
 import Logo from '../components/Logo'
+import { getCurrentUser, getSavedOutfitsKey } from '@/lib/auth'
 
 type SavedOutfitItem = {
   id: string
@@ -23,11 +24,9 @@ type SavedOutfit = {
   items: SavedOutfitItem[]
 }
 
-const STORAGE_KEY = 'gatekeep.savedOutfits'
-
 function loadSavedOutfits(): SavedOutfit[] {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+    return JSON.parse(localStorage.getItem(getSavedOutfitsKey()) || '[]')
   } catch {
     return []
   }
@@ -35,21 +34,30 @@ function loadSavedOutfits(): SavedOutfit[] {
 
 export default function SavedOutfits() {
   const navigate = useNavigate()
+  const user = getCurrentUser()
   const [savedOutfits, setSavedOutfits] = useState<SavedOutfit[]>(() => loadSavedOutfits())
   const [openOutfits, setOpenOutfits] = useState<Record<string, boolean>>({})
   const titleInputs = useRef<Record<string, HTMLInputElement | null>>({})
   const formatter = useMemo(() => new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }), [])
 
+  useEffect(() => {
+    if (!user) navigate('/auth')
+  }, [navigate, user])
+
   const removeOutfit = (id: string) => {
     const next = savedOutfits.filter(outfit => outfit.id !== id)
     setSavedOutfits(next)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    localStorage.setItem(getSavedOutfitsKey(), JSON.stringify(next))
   }
 
   const updateOutfitName = (id: string, name: string) => {
     const next = savedOutfits.map(outfit => outfit.id === id ? { ...outfit, name } : outfit)
     setSavedOutfits(next)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    localStorage.setItem(getSavedOutfitsKey(), JSON.stringify(next))
+  }
+
+  if (!user) {
+    return null
   }
 
   const commitOutfitName = (id: string) => {
