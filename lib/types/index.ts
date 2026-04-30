@@ -33,3 +33,34 @@ export interface UserProfile {
   primaryVibe: Vibe;
   size: string;
 }
+
+export interface UploadedWardrobeItem {
+  id: string;
+  category: OutfitCategory;
+  photoName: string;
+  styleIntent: string;
+  preferredTime: 'day' | 'night' | 'any';
+  previewUrl?: string;
+}
+
+export interface CuratedOutfitItem extends OutfitItem {
+  distanceKm?: number;
+  stockLeft?: number;
+  storeName?: string;
+  storeAddress?: string;
+  storeLocationLink?: string;
+  storeLat?: number;
+  storeLng?: number;
+  externalLink?: string;
+  source?: string;
+  isUserOwned?: boolean;
+  imageUrl?: string;
+}
+
+export interface OutfitSearchMeta {
+  analysedBy: string;
+  provider: string;
+  intentSummary: string;
+  query: string;
+  generatedAt: string;
+}

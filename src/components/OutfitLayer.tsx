@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Lock, Unlock } from 'lucide-react'
-import { OutfitItem } from '@/lib/types'
+import { CuratedOutfitItem, OutfitItem } from '@/lib/types'
 
 interface Props {
   category: string
   label: string
-  item: OutfitItem
+  item: OutfitItem | CuratedOutfitItem
   itemIndex: number
   totalItems: number
   locked: boolean
@@ -50,8 +50,12 @@ export default function OutfitLayer({ category, item, itemIndex, totalItems, loc
             else if (dx > 40) handleSwipe('left')
           }}
         >
-          {/* Emoji */}
-          <span style={{ fontSize: 28, flexShrink: 0, userSelect: 'none' }}>{item.emoji}</span>
+          {/* Product image (fallback to emoji) */}
+          <div style={{ width: 44, height: 44, border: '1px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.15)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {'imageUrl' in item && item.imageUrl
+              ? <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              : <span style={{ fontSize: 24, userSelect: 'none' }}>{item.emoji}</span>}
+          </div>
 
           {/* Info */}
           <div style={{ flex: 1, minWidth: 0 }}>

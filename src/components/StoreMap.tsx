@@ -1,83 +1,76 @@
-import { useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import L from 'leaflet'
-import { stores } from '@/lib/data/stores'
-import { Store } from '@/lib/types'
-import { useAppStore } from '@/lib/store/useAppStore'
 
-function makeIcon(color: string, label: number) {
+function makeIcon(color: string) {
   return L.divIcon({
     className: '',
-    html: `<div style="width:34px;height:34px;background:${color};border:3px solid white;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,0.28);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:13px;font-family:JetBrains Mono,monospace">${label}</div>`,
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
-    popupAnchor: [0, -17],
+    html: `<div style="width:26px;height:26px;background:${color};border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.2)"></div>`,
+    iconSize: [26, 26],
+    iconAnchor: [13, 13],
+    popupAnchor: [0, -13],
   })
 }
 
+export interface MapStore {
+  id: string
+  name: string
+  address: string
+  lat: number
+  lng: number
+  dotColor?: string
+}
+
 interface Props {
-  activeStoreIds: string[]
-  storeItems?: Record<string, string[]>
+  stores: MapStore[]
+  center?: [number, number]
+  userLocation?: { lat: number; lng: number } | null
 }
 
-function FitStoreBounds({ display, center }: { display: Store[]; center: [number, number] }) {
-  const map = useMap()
+export default function StoreMap({ stores, center, userLocation }: Props) {
+  const mapCenter: [number, number] = center
+    ?? (userLocation ? [userLocation.lat, userLocation.lng] : undefined)
+    ?? (stores.length > 0 ? [stores[0].lat, stores[0].lng] : [-33.8785, 151.2135])
 
-  useEffect(() => {
-    if (display.length === 0) {
-      map.setView(center, 13)
-      return
-    }
-
-    if (display.length === 1) {
-      map.setView([display[0].lat, display[0].lng], 15)
-      return
-    }
-
-    const bounds = L.latLngBounds(display.map(store => [store.lat, store.lng]))
-    map.fitBounds(bounds, { padding: [48, 48], maxZoom: 15 })
-  }, [center, display, map])
-
-  return null
-}
-
-export default function StoreMap({ activeStoreIds, storeItems = {} }: Props) {
-  const { location } = useAppStore()
-  const display = activeStoreIds.length > 0
-    ? stores.filter(s => activeStoreIds.includes(s.id))
-    : stores
-
-  const getCenter = (): [number, number] => {
-    const loc = location.toLowerCase()
-    if (loc.includes('sydney')) return [-33.8688, 151.2093]
-    return [40.7380, -73.9900]
-  }
-
-  const center = getCenter()
+  const userIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:18px;height:18px;background:#2563eb;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(37,99,235,0.5)"></div>',
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  })
 
   return (
-    <div style={{ overflow: 'hidden', border: '1px solid black', height: '100%', boxShadow: '8px 8px 0px rgba(0,0,0,0.1)', background: 'white' }}>
-      <MapContainer key={location} center={center} zoom={13}
+    <div style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid #DCFCE7', height: '100%', boxShadow: '0 8px 24px rgba(22,101,52,0.04)' }}>
+      <MapContainer key={`${mapCenter[0]}-${mapCenter[1]}`} center={mapCenter} zoom={14}
         style={{ height: '100%', width: '100%' }}
-        zoomControl attributionControl={false}>
-        <FitStoreBounds display={display} center={center} />
+        zoomControl={false} attributionControl={false}>
         <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution="" />
-        {display.map((store: Store, index) => (
-          <Marker key={store.id} position={[store.lat, store.lng]} icon={makeIcon(store.dotColor, index + 1)}>
+        {stores.map(store => (
+          <Marker key={store.id} position={[store.lat, store.lng]} icon={makeIcon(store.dotColor || '#1a1a1a')}>
             <Popup>
-              <div style={{ fontWeight: 700, fontSize: 14, color: 'black', fontFamily: 'Playfair Display, serif' }}>{store.name.toUpperCase()}</div>
-              <div style={{ fontSize: 12, color: 'black', marginTop: 4, fontFamily: 'JetBrains Mono, monospace' }}>{store.address}</div>
-              {(storeItems[store.id] || []).length > 0 && (
-                <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {(storeItems[store.id] || []).map(item => (
-                    <div key={item} style={{ fontSize: 11, color: 'black', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>
-                      [{item}]
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div style={{ fontWeight: 700, fontSize: 13 }}>{store.name}</div>
+              <div style={{ fontSize: 12, opacity: 0.6, marginTop: 2 }}>{store.address}</div>
+              <a
+                href={userLocation
+                  ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${store.lat},${store.lng}`
+                  : `https://www.google.com/maps/dir/?api=1&destination=${store.lat},${store.lng}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ fontSize: 12, marginTop: 6, display: 'inline-block' }}
+              >
+                Directions
+              </a>
             </Popup>
           </Marker>
+        ))}
+        {userLocation && (
+          <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
+            <Popup>
+              <div style={{ fontWeight: 700, fontSize: 13 }}>Your Location</div>
+            </Popup>
+          </Marker>
+        )}
+        {userLocation && stores.map(store => (
+          <Polyline key={`line-${store.id}`} positions={[[userLocation.lat, userLocation.lng], [store.lat, store.lng]]} pathOptions={{ color: '#94a3b8', weight: 2, dashArray: '6 6' }} />
         ))}
       </MapContainer>
     </div>

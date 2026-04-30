@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { outfitItems, CATEGORY_ORDER } from '@/lib/data/outfitItems';
+import { CuratedOutfitItem, OutfitSearchMeta, UploadedWardrobeItem } from '@/lib/types';
 
 interface LayerState {
   currentIndex: number;
@@ -11,11 +12,18 @@ interface AppStore {
   budget: number;
   location: string;
   layers: Record<string, LayerState>;
+  curatedOutfits: Record<string, CuratedOutfitItem[]>;
+  searchMeta: OutfitSearchMeta | null;
+  uploadedWardrobe: UploadedWardrobeItem[];
 
   setEventPrompt: (p: string) => void;
   setBudget: (b: number) => void;
   setBudgetFriendlyOutfit: (b: number) => void;
   setLocation: (l: string) => void;
+  setCuratedOutfits: (items: Record<string, CuratedOutfitItem[]>) => void;
+  setSearchMeta: (meta: OutfitSearchMeta | null) => void;
+  setUploadedWardrobe: (items: UploadedWardrobeItem[]) => void;
+  resetLayersForResults: () => void;
   setOutfitBySavedItemIds: (itemIds: string[]) => void;
   swipeLayer: (category: string, direction: 'left' | 'right') => void;
   toggleLock: (category: string) => void;
@@ -30,6 +38,23 @@ const initialLayers = () => {
   return layers;
 };
 
+const initialCuratedOutfits = () => {
+  const curated: Record<string, CuratedOutfitItem[]> = {};
+  for (const cat of CATEGORY_ORDER) {
+    curated[cat] = [];
+  }
+  return curated;
+};
+
+const getItemsForCategory = (
+  state: Pick<AppStore, 'curatedOutfits' | 'layers' | 'searchMeta'>,
+  category: string
+) => {
+  if (state.searchMeta) return state.curatedOutfits[category] || [];
+  if (state.curatedOutfits[category]?.length) return state.curatedOutfits[category];
+  return outfitItems[category] || [];
+};
+
 const getBudgetFriendlyLayers = (budget: number) => {
   const combos = CATEGORY_ORDER.reduce(
     (acc, cat) => acc.flatMap(combo => (outfitItems[cat] || []).map((item, index) => ({
@@ -38,6 +63,7 @@ const getBudgetFriendlyLayers = (budget: number) => {
     }))),
     [{ indexes: {} as Record<string, number>, total: 0 }]
   );
+
   const affordable = combos.filter(combo => combo.total <= budget);
   const best = (affordable.length ? affordable : combos).reduce((winner, combo) => {
     if (affordable.length) return combo.total > winner.total ? combo : winner;
@@ -54,47 +80,56 @@ const getBudgetFriendlyLayers = (budget: number) => {
 export const useAppStore = create<AppStore>((set, get) => ({
   eventPrompt: '',
   budget: 200,
-  location: 'New York',
+  location: 'Sydney NSW',
   layers: initialLayers(),
+  curatedOutfits: initialCuratedOutfits(),
+  searchMeta: null,
+  uploadedWardrobe: [],
 
   setEventPrompt: (p) => set({ eventPrompt: p }),
   setBudget: (b) => set({ budget: b }),
   setBudgetFriendlyOutfit: (b) => set({ budget: b, layers: getBudgetFriendlyLayers(b) }),
   setLocation: (l) => set({ location: l }),
+  setCuratedOutfits: (items) => set({ curatedOutfits: items }),
+  setSearchMeta: (meta) => set({ searchMeta: meta }),
+  setUploadedWardrobe: (items) => set({ uploadedWardrobe: items }),
+  resetLayersForResults: () => set({ layers: initialLayers() }),
   setOutfitBySavedItemIds: (itemIds) => {
-    const layers = { ...get().layers };
+    const state = get();
+    const layers = { ...state.layers };
     for (const cat of CATEGORY_ORDER) {
-      const index = (outfitItems[cat] || []).findIndex(item =>
-        itemIds.includes(item.id) || itemIds.includes(`${cat}-${item.id}`)
-      );
+      const items = getItemsForCategory(state, cat);
+      const index = items.findIndex(item => itemIds.includes(item.id) || itemIds.includes(`${cat}-${item.id}`));
       if (index >= 0) layers[cat] = { ...layers[cat], currentIndex: index };
     }
     set({ layers });
   },
 
   swipeLayer: (category, direction) => {
-    const { layers } = get();
-    const layer = layers[category];
-    if (layer.locked) return;
-    const items = outfitItems[category] || [];
+    const state = get();
+    const layer = state.layers[category];
+    if (!layer || layer.locked) return;
+    const items = getItemsForCategory(state, category);
     const len = items.length;
-    const next =
-      direction === 'right'
-        ? (layer.currentIndex + 1) % len
-        : (layer.currentIndex - 1 + len) % len;
-    set({ layers: { ...layers, [category]: { ...layer, currentIndex: next } } });
+    if (len === 0) return;
+    const next = direction === 'right'
+      ? (layer.currentIndex + 1) % len
+      : (layer.currentIndex - 1 + len) % len;
+    set({ layers: { ...state.layers, [category]: { ...layer, currentIndex: next } } });
   },
 
   toggleLock: (category) => {
     const { layers } = get();
     const layer = layers[category];
+    if (!layer) return;
     set({ layers: { ...layers, [category]: { ...layer, locked: !layer.locked } } });
   },
 
   getTotalCost: () => {
-    const { layers } = get();
+    const state = get();
     return CATEGORY_ORDER.reduce((sum, cat) => {
-      const item = outfitItems[cat]?.[layers[cat]?.currentIndex ?? 0];
+      const items = getItemsForCategory(state, cat);
+      const item = items?.[state.layers[cat]?.currentIndex ?? 0];
       return sum + (item?.price ?? 0);
     }, 0);
   },
