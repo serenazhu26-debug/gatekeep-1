@@ -8,9 +8,17 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Lora', '"Times New Roman"', 'serif'],
+        sans: ['Lora', 'serif'],
       },
       colors: {
+        beige: {
+          50: '#FFFDF0',
+          100: '#FDFBEB',
+          200: '#F5F5DC',
+          300: '#E8E8C0',
+          400: '#D9D9A3',
+        },
         pastel: {
           50: '#F0FDF4',
           100: '#DCFCE7',

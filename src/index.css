@@ -5,9 +5,9 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #root {
-  background: #F0FDF4;
-  color: #14532D;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: radial-gradient(circle at top left, #FDFBEB, #F5F5DC);
+  color: #2D2D2A;
+  font-family: 'Lora', 'Times New Roman', serif;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
   min-height: 100vh;
@@ -15,14 +15,14 @@ html, body, #root {
 
 /* Leaflet popup override */
 .leaflet-popup-content-wrapper {
-  background: #fff !important;
-  border: 1px solid #DCFCE7 !important;
-  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(134, 239, 172, 0.3) !important;
+  border-radius: 12px !important;
   color: #14532D !important;
-  box-shadow: 0 8px 24px rgba(20,83,45,0.06) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
 }
-.leaflet-popup-tip { background: #fff !important; }
-.leaflet-popup-content { margin: 12px 16px !important; }
+.leaflet-popup-tip { background: rgba(255, 255, 255, 0.9) !important; }
 
 /* Range input */
 input[type="range"] {
@@ -30,7 +30,7 @@ input[type="range"] {
   appearance: none;
   height: 6px;
   border-radius: 3px;
-  background: linear-gradient(to right, #22C55E var(--pct, 50%), #DCFCE7 var(--pct, 50%));
+  background: linear-gradient(to right, #86EFAC var(--pct, 50%), #E8E8C0 var(--pct, 50%));
   outline: none;
   width: 100%;
   cursor: pointer;
@@ -39,8 +39,8 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 20px; height: 20px;
   border-radius: 50%;
-  background: #22C55E;
+  background: linear-gradient(135deg, #86EFAC, #4ADE80);
   border: 3px solid white;
-  box-shadow: 0 2px 6px rgba(22,101,52,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   cursor: pointer;
 }

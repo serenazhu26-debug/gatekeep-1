@@ -7,7 +7,7 @@ import ShoppingList from './pages/ShoppingList'
 export default function App() {
   return (
     <BrowserRouter>
-      <div style={{ background: '#F0FDF4', minHeight: '100vh' }}>
+      <div style={{ background: 'radial-gradient(circle at top left, #FDFBEB, #F5F5DC)', minHeight: '100vh' }}>
         <Routes>
           <Route path="/"               element={<Welcome />} />
           <Route path="/style-input"    element={<StyleInput />} />

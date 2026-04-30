@@ -19,16 +19,16 @@ export default function OutfitBuilder() {
     : 'Your outfit'
 
   return (
-    <main style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '0 24px 40px', background: '#F0FDF4' }}>
+    <main style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '0 24px 40px', background: 'radial-gradient(circle at top left, #FDFBEB, #F5F5DC)', fontFamily: "'Lora', serif" }}>
       {/* Nav */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '28px 0 0', maxWidth: 1200, margin: '0 auto', width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => navigate(-1)} style={{ width: 40, height: 40, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', border: '1px solid #DCFCE7', cursor: 'pointer', color: '#166534' }}>
+          <button onClick={() => navigate(-1)} style={{ width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', border: '1px solid #E8E8C0', cursor: 'pointer', color: '#5A5A50', backdropFilter: 'blur(10px)' }}>
             <ArrowLeft size={18} />
           </button>
-          <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.03em', color: '#14532D' }}>Gatekeep</span>
+          <span style={{ fontWeight: 800, fontSize: 24, letterSpacing: '-0.02em', color: '#2D2D2A', fontFamily: "'Playfair Display', serif" }}>Gatekeep</span>
         </div>
-        <div style={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: '#166534', opacity: 0.6, fontWeight: 500 }}>
+        <div style={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: '#8B8B7A', fontWeight: 500, fontStyle: 'italic' }}>
           {shortPrompt}
         </div>
       </div>
@@ -36,15 +36,15 @@ export default function OutfitBuilder() {
       <div style={{ maxWidth: 1000, margin: '0 auto', width: '100%', flex: 1, display: 'flex', flexDirection: 'column', marginTop: 32 }}>
         
         {/* Section heading */}
-        <div style={{ marginBottom: 24 }}>
-          <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.04em', color: '#14532D' }}>Curated for you</h2>
-          <p style={{ fontSize: 16, color: '#166534', opacity: 0.8, marginTop: 4 }}>Swipe to swap items. Everything here is in stock nearby.</p>
+        <div style={{ marginBottom: 32 }}>
+          <h2 style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.02em', color: '#2D2D2A', fontFamily: "'Playfair Display', serif" }}>Curated for you</h2>
+          <p style={{ fontSize: 18, color: '#5A5A50', marginTop: 4, opacity: 0.8 }}>Swipe to swap items. Everything here is in stock nearby.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 40, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 48, alignItems: 'start' }}>
           
           {/* Left: Outfit layers */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {CATEGORY_ORDER.map(cat => {
               const items = outfitItems[cat] || []
               const layer = layers[cat]
@@ -52,7 +52,7 @@ export default function OutfitBuilder() {
               if (!item) return null
               return (
                 <div key={cat}>
-                  <p style={{ fontSize: 12, color: '#166534', opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, margin: '0 0 8px 4px' }}>
+                  <p style={{ fontSize: 12, color: '#8B8B7A', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 700, margin: '0 0 10px 4px' }}>
                     {CATEGORY_LABELS[cat]}
                   </p>
                   <OutfitLayer category={cat} label={CATEGORY_LABELS[cat]} item={item}
@@ -66,34 +66,34 @@ export default function OutfitBuilder() {
           </div>
 
           {/* Right: Summary & Budget */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             
-            <div style={{ padding: 24, borderRadius: 24, background: 'white', border: '1px solid #DCFCE7', boxShadow: '0 4px 12px rgba(22,101,52,0.02)' }}>
+            <div style={{ padding: 28, borderRadius: 24, background: 'rgba(255,255,255,0.4)', border: '1px solid #E8E8C0', backdropFilter: 'blur(10px)', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
               <button onClick={() => setShowSlider(v => !v)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
-                  <span style={{ fontSize: 13, color: '#166534', opacity: 0.6, fontWeight: 600 }}>Total Cost</span>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-                    <span style={{ fontWeight: 800, fontSize: 36, color: over ? '#DC2626' : '#14532D', letterSpacing: '-0.04em' }}>${total}</span>
-                    <span style={{ fontSize: 14, color: '#166534', opacity: 0.6 }}>/ ${budget} budget</span>
+                  <span style={{ fontSize: 13, color: '#8B8B7A', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Cost</span>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 6 }}>
+                    <span style={{ fontWeight: 700, fontSize: 42, color: over ? '#991B1B' : '#2D2D2A', letterSpacing: '-0.02em', fontFamily: "'Playfair Display', serif" }}>${total}</span>
+                    <span style={{ fontSize: 15, color: '#8B8B7A', fontStyle: 'italic' }}>/ ${budget} budget</span>
                   </div>
                 </div>
-                <div style={{ width: 36, height: 36, borderRadius: 12, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {showSlider ? <ChevronUp size={18} color="#166534" /> : <ChevronDown size={18} color="#166534" />}
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'white', border: '1px solid #E8E8C0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {showSlider ? <ChevronUp size={20} color="#5A5A50" /> : <ChevronDown size={20} color="#5A5A50" />}
                 </div>
               </button>
 
               {/* Progress bar */}
-              <div style={{ marginTop: 20, height: 8, borderRadius: 4, background: '#F0FDF4', overflow: 'hidden' }}>
-                <motion.div animate={{ width: `${pct}%` }} transition={{ duration: 0.4 }}
-                  style={{ height: '100%', borderRadius: 4, background: over ? '#DC2626' : '#22C55E' }} />
+              <div style={{ marginTop: 24, height: 10, borderRadius: 10, background: 'rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                <motion.div animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: 'easeOut' }}
+                  style={{ height: '100%', borderRadius: 10, background: over ? 'linear-gradient(90deg, #F87171, #EF4444)' : 'linear-gradient(90deg, #86EFAC, #4ADE80)' }} />
               </div>
 
               <AnimatePresence>
                 {showSlider && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ marginTop: 24, overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#166534', opacity: 0.6, marginBottom: 12, fontWeight: 500 }}>
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ marginTop: 32, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#8B8B7A', marginBottom: 12, fontWeight: 500, fontStyle: 'italic' }}>
                       <span>$50</span>
-                      <span style={{ color: '#22C55E', fontWeight: 800 }}>${budget}</span>
+                      <span style={{ color: '#166534', fontWeight: 700 }}>${budget}</span>
                       <span>$500</span>
                     </div>
                     <input type="range" min={50} max={500} step={10} value={budget}
@@ -105,12 +105,12 @@ export default function OutfitBuilder() {
             </div>
 
             <button onClick={() => navigate('/shopping-list')} disabled={over}
-              style={{ width: '100%', padding: '20px', borderRadius: 20, fontWeight: 700, fontSize: 18, color: 'white', background: over ? '#DCFCE7' : '#22C55E', border: 'none', cursor: over ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, letterSpacing: '-0.01em', boxShadow: over ? 'none' : '0 10px 25px -5px rgba(34, 197, 94, 0.3)', transition: 'all 0.2s' }}>
+              style={{ width: '100%', padding: '22px', borderRadius: 100, fontWeight: 600, fontSize: 18, color: 'white', background: over ? 'rgba(232, 232, 192, 0.6)' : 'linear-gradient(135deg, #86EFAC, #4ADE80)', border: 'none', cursor: over ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, transition: 'all 0.3s', boxShadow: over ? 'none' : '0 15px 35px -5px rgba(134, 239, 172, 0.4)' }}>
               <Heart size={20} fill={over ? 'none' : 'white'} />
               {over ? 'Over budget' : 'Get the List'}
             </button>
 
-            <p style={{ textAlign: 'center', fontSize: 13, color: '#166534', opacity: 0.6, fontWeight: 500 }}>
+            <p style={{ textAlign: 'center', fontSize: 14, color: '#8B8B7A', fontWeight: 500, fontStyle: 'italic' }}>
               All items are available at stores within 5 miles.
             </p>
 
