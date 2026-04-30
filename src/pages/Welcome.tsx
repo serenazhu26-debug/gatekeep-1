@@ -66,10 +66,9 @@ export default function Welcome() {
   const navigate = useNavigate()
   const { scrollYProgress } = useScroll()
   
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
-  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95])
-  const workflowOpacity = useTransform(scrollYProgress, [0.15, 0.3], [0, 1])
-  const workflowY = useTransform(scrollYProgress, [0.15, 0.3], [50, 0])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0])
+  const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 0.95])
+  const workflowOpacity = useTransform(scrollYProgress, [0.1, 0.25], [0, 1])
 
   return (
     <main style={{ width: '100%', minHeight: '200vh', background: '#F5F5DC', position: 'relative' }}>
@@ -97,10 +96,10 @@ export default function Welcome() {
           top: 0,
           left: 0,
           right: 0,
-          pointerEvents: 'none'
+          zIndex: 1
         }}
       >
-        <div style={{ maxWidth: 1200, width: '100%', pointerEvents: 'auto', textAlign: 'center' }}>
+        <div style={{ maxWidth: 1200, width: '100%', textAlign: 'center' }}>
           <h1 style={{ fontSize: 'clamp(48px, 8vw, 96px)', fontWeight: 700, lineHeight: 1, letterSpacing: '-0.02em', color: 'black', fontFamily: "'Playfair Display', serif", marginBottom: 32 }}>
             Find <span style={{ fontStyle: 'italic' }}>your look</span> <br/> in minutes.
           </h1>
@@ -130,9 +129,10 @@ export default function Welcome() {
           minHeight: '100vh',
           padding: '160px 24px 100px',
           opacity: workflowOpacity,
-          y: workflowY,
           maxWidth: 1200,
-          margin: '0 auto'
+          margin: '100vh auto 0', // Start after the hero
+          position: 'relative',
+          zIndex: 2
         }}
       >
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'start' }}>

@@ -4,6 +4,12 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Sparkles, X, MapPin, DollarSign } from 'lucide-react'
 import { useAppStore } from '@/lib/store/useAppStore'
 
+const Logo = () => (
+  <div style={{ fontSize: 24, fontWeight: 700, fontFamily: "'Playfair Display', serif", letterSpacing: '0.05em' }}>
+    VIBECHECK
+  </div>
+)
+
 const SUGGESTIONS = [
   'Job interview at a tech startup',
   'Rooftop birthday dinner',
@@ -181,15 +187,4 @@ export default function StyleInput() {
       </div>
     </main>
   )
-}
-span>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </main>
-  )
-}
+} 
