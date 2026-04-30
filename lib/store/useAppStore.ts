@@ -14,6 +14,7 @@ interface AppStore {
 
   setEventPrompt: (p: string) => void;
   setBudget: (b: number) => void;
+  setBudgetFriendlyOutfit: (b: number) => void;
   setLocation: (l: string) => void;
   swipeLayer: (category: string, direction: 'left' | 'right') => void;
   toggleLock: (category: string) => void;
@@ -28,6 +29,27 @@ const initialLayers = () => {
   return layers;
 };
 
+const getBudgetFriendlyLayers = (budget: number) => {
+  const combos = CATEGORY_ORDER.reduce(
+    (acc, cat) => acc.flatMap(combo => (outfitItems[cat] || []).map((item, index) => ({
+      indexes: { ...combo.indexes, [cat]: index },
+      total: combo.total + item.price,
+    }))),
+    [{ indexes: {} as Record<string, number>, total: 0 }]
+  );
+  const affordable = combos.filter(combo => combo.total <= budget);
+  const best = (affordable.length ? affordable : combos).reduce((winner, combo) => {
+    if (affordable.length) return combo.total > winner.total ? combo : winner;
+    return combo.total < winner.total ? combo : winner;
+  });
+
+  const layers: Record<string, LayerState> = {};
+  for (const cat of CATEGORY_ORDER) {
+    layers[cat] = { currentIndex: best.indexes[cat] ?? 0, locked: false };
+  }
+  return layers;
+};
+
 export const useAppStore = create<AppStore>((set, get) => ({
   eventPrompt: '',
   budget: 200,
@@ -36,6 +58,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   setEventPrompt: (p) => set({ eventPrompt: p }),
   setBudget: (b) => set({ budget: b }),
+  setBudgetFriendlyOutfit: (b) => set({ budget: b, layers: getBudgetFriendlyLayers(b) }),
   setLocation: (l) => set({ location: l }),
 
   swipeLayer: (category, direction) => {

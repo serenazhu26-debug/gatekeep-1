@@ -1,7 +1,7 @@
 import { useState, type CSSProperties, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Heart, ChevronDown, ChevronUp, ArrowRight, MapPin } from 'lucide-react'
+import { ArrowLeft, Heart, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ArrowRight, MapPin } from 'lucide-react'
 import { useAppStore } from '@/lib/store/useAppStore'
 import { outfitItems, CATEGORY_LABELS, CATEGORY_ORDER } from '@/lib/data/outfitItems'
 import { getStore } from '@/lib/data/stores'
@@ -9,7 +9,7 @@ import Logo from '../components/Logo'
 
 export default function OutfitBuilder() {
   const navigate = useNavigate()
-  const { eventPrompt, setEventPrompt, budget, setBudget, layers, getTotalCost, location } = useAppStore()
+  const { eventPrompt, setEventPrompt, budget, setBudget, layers, swipeLayer, getTotalCost, location } = useAppStore()
   const [showSlider, setShowSlider] = useState(false)
   const [refinePrompt, setRefinePrompt] = useState('')
   const [minCost, setMinCost] = useState(50)
@@ -31,6 +31,7 @@ export default function OutfitBuilder() {
     })
     .filter((row): row is NonNullable<typeof row> => Boolean(row))
     .filter(({ item }) => item.price > 0)
+  const hasVisibleBelt = currentItems.some(({ cat }) => cat === 'belt')
 
   const handleRefineSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -76,7 +77,7 @@ export default function OutfitBuilder() {
         {/* Section heading */}
         <div style={{ marginBottom: 32, borderLeft: '4px solid black', paddingLeft: 24 }}>
           <h2 style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.02em', color: 'black', fontFamily: "'Playfair Display', serif" }}>CURATED LOOKS</h2>
-          <p style={{ fontSize: 16, color: 'black', marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>AI PICKED FOR YOUR EVENT. STOCK IN {location.toUpperCase()}.</p>
+          <p style={{ fontSize: 16, color: 'black', marginTop: 4, fontFamily: "'JetBrains Mono', monospace" }}>CURATED FOR YOUR EVENT. STOCK IN {location.toUpperCase()}.</p>
         </div>
 
         <form onSubmit={handleRefineSubmit} style={{ width: '100%', display: 'flex', alignItems: 'stretch', marginBottom: 32 }}>
@@ -97,20 +98,16 @@ export default function OutfitBuilder() {
         </form>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 0.9fr', gap: 48, alignItems: 'start' }}>
-          
-          {/* Left: AI curated outfit */}
-          <section style={{ border: '1px solid black', background: 'white', padding: 28, boxShadow: '8px 8px 0px rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'start', marginBottom: 28 }}>
-              <div>
-                <p style={{ margin: 0, fontSize: 12, color: 'black', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: "'JetBrains Mono', monospace" }}>AI_CURATED_OUTFIT</p>
-                <h3 style={{ margin: '8px 0 0', fontSize: 28, lineHeight: 1.1, color: 'black', fontFamily: "'Playfair Display', serif" }}>{shortPrompt}</h3>
-              </div>
-              <span style={{ border: '1px solid black', padding: '6px 10px', fontSize: 11, fontWeight: 700, color: 'black', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-                {currentItems.length} PIECES
+          {/* Left: curated outfit */}
+          <section style={{ border: '1px solid black', background: '#F5F5DC', padding: 0, overflow: 'hidden', boxShadow: '8px 8px 0px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', padding: '8px 10px', borderBottom: '1px solid black', background: 'white' }}>
+              <p style={{ margin: 0, fontSize: 12, color: 'black', fontWeight: 700, letterSpacing: '0.1em', fontFamily: "'JetBrains Mono', monospace" }}>curated_outfit</p>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'black', fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                {currentItems.length} pieces
               </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'repeat(4, 92px)', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: hasVisibleBelt ? 'repeat(4, 76px)' : 'repeat(3, 76px)', gap: 0 }}>
               {currentItems.map(({ cat, item }) => {
                 const slotStyle: CSSProperties = cat === 'headgear'
                   ? { gridColumn: '1 / 3', gridRow: '1' }
@@ -119,18 +116,15 @@ export default function OutfitBuilder() {
                     : cat === 'belt'
                       ? { gridColumn: '1 / 3', gridRow: '3' }
                       : cat === 'bottom'
-                        ? { gridColumn: '1', gridRow: '4' }
-                        : { gridColumn: '2', gridRow: '4' }
+                        ? { gridColumn: '1', gridRow: hasVisibleBelt ? '4' : '3' }
+                        : { gridColumn: '2', gridRow: hasVisibleBelt ? '4' : '3' }
 
                 return (
-                  <div key={item.id} style={{ ...slotStyle, display: 'flex', alignItems: 'center', gap: 14, border: '1px solid black', background: '#F5F5DC', padding: '12px 14px', overflow: 'hidden' }}>
-                    <div style={{ width: 56, height: 56, border: '1px solid black', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, flexShrink: 0 }}>
+                  <div key={item.id} style={{ ...slotStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: '1px solid black', borderTop: 'none', background: '#F5F5DC', padding: '6px 8px', overflow: 'hidden' }}>
+                    <div style={{ width: 44, height: 44, border: '1px solid black', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>
                       {item.emoji}
                     </div>
-                    <div style={{ minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: 'black', textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace" }}>{CATEGORY_LABELS[cat]}</p>
-                      <p style={{ margin: '4px 0 0', fontSize: 16, fontWeight: 700, color: 'black', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: "'Playfair Display', serif" }}>{item.name}</p>
-                    </div>
+                    <p style={{ margin: 0, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: 'black', textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace", whiteSpace: 'nowrap' }}>{CATEGORY_LABELS[cat]}</p>
                   </div>
                 )
               })}
@@ -226,6 +220,14 @@ export default function OutfitBuilder() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
             {currentItems.map(({ cat, item, store }) => (
               <article key={item.id} style={{ display: 'flex', gap: 14, alignItems: 'center', border: '1px solid black', background: 'white', padding: 16 }}>
+                <button
+                  type="button"
+                  onClick={() => swipeLayer(cat, 'left')}
+                  style={{ width: 34, height: 52, border: '1px solid black', background: '#F5F5DC', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                  aria-label={`Previous ${CATEGORY_LABELS[cat]}`}
+                >
+                  <ChevronLeft size={18} />
+                </button>
                 <div style={{ width: 52, height: 52, border: '1px solid black', background: '#F5F5DC', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>
                   {item.emoji}
                 </div>
@@ -241,6 +243,14 @@ export default function OutfitBuilder() {
                   </div>
                 </div>
                 <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'black', fontFamily: "'JetBrains Mono', monospace" }}>${item.price}</p>
+                <button
+                  type="button"
+                  onClick={() => swipeLayer(cat, 'right')}
+                  style={{ width: 34, height: 52, border: '1px solid black', background: '#F5F5DC', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                  aria-label={`Next ${CATEGORY_LABELS[cat]}`}
+                >
+                  <ChevronRight size={18} />
+                </button>
               </article>
             ))}
           </div>

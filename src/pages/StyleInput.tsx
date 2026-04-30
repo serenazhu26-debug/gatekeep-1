@@ -18,8 +18,9 @@ type Phase = 'input' | 'finding'
 
 export default function StyleInput() {
   const navigate = useNavigate()
-  const { setEventPrompt, setBudget, setLocation } = useAppStore()
+  const { setEventPrompt, setBudgetFriendlyOutfit, setLocation } = useAppStore()
   const [prompt, setPrompt] = useState('')
+  const [ownedItems, setOwnedItems] = useState('')
   const [localBudget, setLocalBudget] = useState('')
   const [localLocation, setLocalLocation] = useState('')
   const [phase, setPhase] = useState<Phase>('input')
@@ -36,8 +37,8 @@ export default function StyleInput() {
 
   const handleSubmit = () => {
     if (!canProceed) return
-    setEventPrompt(prompt)
-    setBudget(Number(localBudget) || 200)
+    setEventPrompt(ownedItems.trim() ? `${prompt}\nAlready have: ${ownedItems.trim()}` : prompt)
+    setBudgetFriendlyOutfit(Number(localBudget) || 200)
     setLocation(localLocation)
     setPhase('finding')
     setFindingStep(0)
@@ -98,6 +99,23 @@ export default function StyleInput() {
                 {prompt && (
                   <button onClick={() => setPrompt('')}
                     style={{ position: 'absolute', top: 24, right: 24, width: 32, height: 32, border: '1px solid black', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', cursor: 'pointer', color: 'black' }}>
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Existing wardrobe input */}
+              <div style={{ marginTop: 20, position: 'relative' }}>
+                <textarea
+                  value={ownedItems}
+                  onChange={e => setOwnedItems(e.target.value)}
+                  placeholder="Anything you already have? e.g. black boots, white tee, leather jacket..."
+                  rows={3}
+                  style={{ width: '100%', padding: '22px 28px', borderRadius: 0, fontSize: 16, color: 'black', background: 'white', border: '1px solid black', outline: 'none', resize: 'none', lineHeight: 1.5, boxSizing: 'border-box', fontFamily: 'inherit', transition: 'all 0.3s' }}
+                />
+                {ownedItems && (
+                  <button onClick={() => setOwnedItems('')}
+                    style={{ position: 'absolute', top: 18, right: 24, width: 32, height: 32, border: '1px solid black', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'white', cursor: 'pointer', color: 'black' }}>
                     <X size={14} />
                   </button>
                 )}
