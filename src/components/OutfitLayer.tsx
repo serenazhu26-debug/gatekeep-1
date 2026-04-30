@@ -97,7 +97,7 @@ export default function OutfitLayer({ category, item, itemIndex, totalItems, loc
 
       {/* Lock button */}
       <button onClick={onToggleLock}
-        style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: locked ? '#3B82F6' : 'rgba(0,0,0,0.15)', border: 'none', cursor: 'pointer', zIndex: 10, transition: 'background 0.2s' }}>
+        style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: locked ? '#22C55E' : 'rgba(0,0,0,0.15)', border: 'none', cursor: 'pointer', zIndex: 10, transition: 'background 0.2s' }}>
         {locked
           ? <Lock size={13} color="white" />
           : <Unlock size={13} color="rgba(255,255,255,0.7)" />}

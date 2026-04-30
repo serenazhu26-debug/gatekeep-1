@@ -25,7 +25,7 @@ export default function StoreMap({ activeStoreIds }: Props) {
   const center: [number, number] = [40.7380, -73.9900]
 
   return (
-    <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid #E5E7EB', height: 280 }}>
+    <div style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid #DCFCE7', height: '100%', boxShadow: '0 8px 24px rgba(22,101,52,0.04)' }}>
       <MapContainer center={center} zoom={12}
         style={{ height: '100%', width: '100%' }}
         zoomControl={false} attributionControl={false}>
@@ -33,8 +33,8 @@ export default function StoreMap({ activeStoreIds }: Props) {
         {display.map((store: Store) => (
           <Marker key={store.id} position={[store.lat, store.lng]} icon={makeIcon(store.dotColor)}>
             <Popup>
-              <div style={{ fontWeight: 700, fontSize: 13, color: '#1A1A1A' }}>{store.name}</div>
-              <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{store.address}</div>
+              <div style={{ fontWeight: 700, fontSize: 13, color: '#14532D' }}>{store.name}</div>
+              <div style={{ fontSize: 12, color: '#166534', opacity: 0.6, marginTop: 2 }}>{store.address}</div>
             </Popup>
           </Marker>
         ))}
