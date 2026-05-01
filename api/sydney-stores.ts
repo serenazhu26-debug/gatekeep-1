@@ -26,6 +26,58 @@ const getBody = (req) => {
   return req.body || {};
 };
 
+const FIXED_SYDNEY_STORES = [
+  {
+    id: 'fixed-pam',
+    name: 'P.A.M. Store Sydney',
+    address: '304 Palmer St, Darlinghurst NSW 2010',
+    lat: -33.8779,
+    lng: 151.2206,
+    website: 'https://perksandmini.com/',
+  },
+  {
+    id: 'fixed-goelia',
+    name: 'GOELIA Fashion',
+    address: 'Suite2, Level 6/428 George St, Sydney NSW 2000',
+    lat: -33.8734,
+    lng: 151.2069,
+    website: 'https://www.goelia1995.com/en-au',
+  },
+  {
+    id: 'fixed-stily',
+    name: 'Sorry Thanks I Love You',
+    address: 'Westfield Sydney, Cnr Pitt St Mall &, Market St, Sydney NSW 2000',
+    lat: -33.8708,
+    lng: 151.2073,
+    website: 'https://sorrythanksiloveyou.com/',
+  },
+  {
+    id: 'fixed-social-outfit',
+    name: 'The Social Outfit',
+    address: '188 King St, Newtown NSW 2042',
+    lat: -33.8970,
+    lng: 151.1790,
+    website: 'https://thesocialoutfit.org/',
+  },
+];
+
+const toStorePayload = (userLat, userLng, list) =>
+  list
+    .map((s) => {
+      const distanceKm = Number(haversineKm(userLat, userLng, s.lat, s.lng).toFixed(1));
+      return {
+        id: s.id,
+        name: s.name,
+        address: s.address,
+        locationLink: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address)}`,
+        lat: s.lat,
+        lng: s.lng,
+        website: s.website || '',
+        distanceKm,
+      };
+    })
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -53,12 +105,20 @@ out center body;
 
     const response = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Accept: 'application/json, text/plain, */*',
+        'User-Agent': 'gatekeep-1/1.0 (+https://gatekeep-1-wine.vercel.app)',
+      },
       body: `data=${encodeURIComponent(overpassQuery)}`,
     });
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: `Overpass failed: ${response.statusText}` });
+      return res.status(200).json({
+        stores: toStorePayload(lat, lng, FIXED_SYDNEY_STORES),
+        source: 'fixed-fallback',
+        warning: `Overpass unavailable (${response.status})`,
+      });
     }
 
     const json = await response.json();
@@ -91,10 +151,22 @@ out center body;
       });
     }
 
+    if (!stores.length) {
+      return res.status(200).json({
+        stores: toStorePayload(lat, lng, FIXED_SYDNEY_STORES),
+        source: 'fixed-fallback',
+      });
+    }
+
     return res.status(200).json({
       stores: stores.sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 120),
+      source: 'overpass',
     });
   } catch (error) {
-    return res.status(500).json({ error: String(error) });
+    return res.status(200).json({
+      stores: toStorePayload(-33.8688, 151.2093, FIXED_SYDNEY_STORES),
+      source: 'fixed-fallback',
+      warning: String(error),
+    });
   }
 };
